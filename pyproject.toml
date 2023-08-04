@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "mapper"
+version = "0.1.0"
+description = "Use LLM embeddings to create mappings between the Brick ontology and external vocabularies"
+authors = ["Gabe Fierro <gtfierro@mines.edu>"]
+license = "bsd-3-clause"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+openai = "^0.27.8"
+rdflib = "^7.0.0"
+tqdm = "^4.65.0"
+qdrant-client = "^1.3.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

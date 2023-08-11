@@ -39,6 +39,7 @@ class Mapper:
         self.definitions = definitions
         self.brick_lookup = {}
         self.external_index_file: Path = Path(external_index_file)
+        self.brick_index_file: Path = Path("brick.index")
 
         # 1536 is the openai embedding vector size
         self.external_index = Index(ndim=1536, metric="cos")
@@ -86,9 +87,8 @@ class Mapper:
 
         :param brick_classes: list of BrickClassDefinition for the classes to be embedded
         """
-        self.brick_lookup = {}
-        if os.path.exists("brick.index"):
-            self.brick_index.load(Path("brick.index"))
+        if self.brick_index_file.exists():
+            self.brick_index.load(self.brick_index_file)
             for d in brick_classes:
                 self._hashbrick(d.class_)
             return
@@ -99,7 +99,7 @@ class Mapper:
             )
             key = self._hashbrick(defn.class_)
             self.brick_index.add(key, embedding)
-        self.brick_index.save("brick.index")
+        self.brick_index.save(self.brick_index_file)
 
     def _hashbrick(self, n: Node) -> int:
         hv = int(fnv1a_32(str(n).encode("utf8")))
@@ -171,6 +171,7 @@ class Mapper:
         :param allow_collisions: allow collisions in the final mapping, defaults to True
         :return: Mapping of External concepts (str) to Brick classes (rdflib.URIRef)
         """
+        self.populate_brick_embeddings(bcs)
         if allow_collisions:
             return self._get_best_external_to_brick_mapping(bcs)
         join = self.external_index.join(self.brick_index)
@@ -183,7 +184,6 @@ class Mapper:
         self, brick_classes: Iterable[BrickClassDefinition]
     ) -> Dict[str, Node]:
         inverse_mapping = defaultdict(list)
-        self.populate_brick_embeddings(brick_classes)
         self._populate_external_to_brick_mapping(brick_classes)
         # for each external concept, make a list of all the Brick classes that
         # map to the concept
@@ -198,22 +198,3 @@ class Mapper:
             brick_classes = sorted(brick_classes, key=lambda x: x[1], reverse=True)
             singular_inverse_mapping[cw_class] = brick_classes[0]
         return singular_inverse_mapping
-
-
-if __name__ == "__main__":
-    import json
-
-    defns = json.load(open("../../clockworksanalytics-brick/pointtypes.json"))
-    fixed_defns = []
-    for d in defns:
-        name = d["attributes"].get("PointTypeName", "")
-        display = d["attributes"].get("DisplayName", "")
-        description = d["attributes"].get("PointTypeDescription", "")
-        fixed_defns.append(
-            {"name": name, "display": display, "description": description}
-        )
-
-    m = Mapper(fixed_defns)
-    bcs = m.get_brick_classes(BRICK.Point, [BRICK.Parameter])
-    for k, v in m.get_mapping(bcs).items():
-        print(k, v)

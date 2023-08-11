@@ -68,7 +68,7 @@ class Mapper:
             return
 
         log.info(
-            "No local 'external.index' found. Computing embeddings for external concepts"
+            f"No local 'self.external_index_file' found. Computing embeddings for external concepts"
         )
         for defn in tqdm(self.definitions):
             name = defn.pop("name")

@@ -1,5 +1,24 @@
 # Brick-vocab-mapper
 
+This package is a simple wrapper around the OpenAI embeddings API to assist in
+producing vocabulary mappings between external vocabs (like Haystack protos,
+gbXML equipment names, or internal naming schems) and Brick classes.
+
+You will need an OpenAI API key to compute your own embeddings. This costs money,
+but is very cheap (much less than $1) to do for hundreds of terms.
+We cache embeddings in `.index` files to avoid hitting the API again.
+The `brick.index` file in this repo will allow you to run the example below without any OpenAI API calls.
+
+You must provide your external vocabulary to the Brick mapper tool as a list of dictonaries.
+Each dictionary defines key-value pairs of a single concept; this dictionary must contain a key called `name` which contains
+the *unique* name of the term to be mapped.
+
+There are two kinds of mappings that can be produced by the package:
+- `stable`: a stable mapping performs a 1-1 matching of external terms to Brick classes; it does not permit overlaps
+- `unstable`: an unstable mapping allows 1 external term to match multiple Brick classes and vice-versa
+
+## Haystack Protos Example
+
 ```python
 from mapper import Mapper
 from rdflib import BRICK

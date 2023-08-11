@@ -25,7 +25,11 @@ class BrickClassDefinition:
 
 
 class Mapper:
-    def __init__(self, definitions: List[Dict[str, dict]]):
+    def __init__(
+        self,
+        definitions: List[Dict[str, dict]],
+        external_index_file: str = "external.index",
+    ):
         # load in Brick
         self.g = Graph()
         self.g.parse(
@@ -34,6 +38,7 @@ class Mapper:
         )
         self.definitions = definitions
         self.brick_lookup = {}
+        self.external_index_file: Path = Path(external_index_file)
 
         # 1536 is the openai embedding vector size
         self.external_index = Index(ndim=1536, metric="cos")
@@ -56,8 +61,9 @@ class Mapper:
         """
         Calculate embeddings for the definitions passed in. Expect ['name'] key
         """
-        if os.path.exists("external.index"):
-            self.external_index = Index.load(Path("external.index"))
+        if self.external_index_file.exists():
+            log.info(f"Restored {self.external_index_file}")
+            self.external_index.load(self.external_index_file)
             return
 
         log.info(
@@ -71,7 +77,7 @@ class Mapper:
             self.external_index.add(
                 int(fnv1a_32(name.encode("utf8"))), self.get_embedding(text)
             )
-        self.external_index.save("external.index")
+        self.external_index.save(self.external_index_file)
 
     def populate_brick_embeddings(self, brick_classes: Iterable[BrickClassDefinition]):
         """
@@ -82,7 +88,7 @@ class Mapper:
         """
         self.brick_lookup = {}
         if os.path.exists("brick.index"):
-            self.brick_index = Index.load(Path("brick.index"))
+            self.brick_index.load(Path("brick.index"))
             for d in brick_classes:
                 self._hashbrick(d.class_)
             return
@@ -137,17 +143,15 @@ class Mapper:
         self, brick_classes: Iterable[BrickClassDefinition], top_k=20, threshold=0.8
     ) -> Dict[Node, List[dict]]:
         mapping = {}
+
         for defn in tqdm(brick_classes):
             # embedding = self.get_embedding(f"{defn.class_} {defn.label} {defn.definition}".strip())
-            log.info(f"lookign at {defn.class_}")
             embedding = self.brick_index.get_vectors(
-                np.ndarray([self._hashbrick(defn.class_)], dtype=np.uint64)
+                np.array([self._hashbrick(defn.class_)], dtype=np.uint64)
             )
-            log.info(f"Got vectors. Now searching")
             recommendations = self.external_index.search(embedding, k=top_k)
-            log.info(f"Finished search")
             best_labels = []
-            for idx, external_match in enumerate(recommendations.labels):
+            for idx, external_match in enumerate(recommendations.keys):
                 if recommendations.distances[idx] < threshold:
                     best_labels.append(external_match)
             kept_recs = [self.external_lookup[idx] for idx in best_labels]

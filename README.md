@@ -1,5 +1,9 @@
 # Brick-vocab-mapper
 
+```
+pip install brickmapper
+```
+
 This package is a simple wrapper around the OpenAI embeddings API to assist in
 producing vocabulary mappings between external vocabs (like Haystack protos,
 gbXML equipment names, or internal naming schems) and Brick classes.
@@ -20,7 +24,7 @@ There are two kinds of mappings that can be produced by the package:
 ## Haystack Protos Example
 
 ```python
-from mapper import Mapper
+from brickmapper import Mapper
 from rdflib import BRICK
 import urllib.request
 import csv

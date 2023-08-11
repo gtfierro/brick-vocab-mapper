@@ -94,5 +94,6 @@ condenser water entering pump equip:
         stable: https://brickschema.org/schema/Brick#Condenser_Water_Pump
 ```
 
-### UI notes:
-- is mapping correct/incorrect
+## TODOs
+
+- [ ] incorporate common abbreviations & support embedding of them

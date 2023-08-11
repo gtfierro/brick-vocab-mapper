@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "brickmapper"
-version = "0.1.0"
+version = "0.1.2"
 description = "Use LLM embeddings to create mappings between the Brick ontology and external vocabularies"
 authors = ["Gabe Fierro <gtfierro@mines.edu>"]
 license = "bsd-3-clause"

@@ -178,6 +178,7 @@ class Mapper:
         return {
             str(self.external_lookup[external_id]): self.brick_lookup[brick_id]
             for external_id, brick_id in join.items()
+            if brick_id in self.brick_lookup
         }
 
     def _get_best_external_to_brick_mapping(

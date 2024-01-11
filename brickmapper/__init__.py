@@ -146,10 +146,12 @@ class Mapper:
 
         for defn in tqdm(brick_classes):
             # embedding = self.get_embedding(f"{defn.class_} {defn.label} {defn.definition}".strip())
-            embedding = self.brick_index.get_vectors(
+            embedding = self.brick_index.get(
                 np.array([self._hashbrick(defn.class_)], dtype=np.uint64)
             )
-            recommendations = self.external_index.search(embedding, k=top_k)
+            if not embedding or embedding[0] is None:
+                continue
+            recommendations = self.external_index.search(embedding[0], count=top_k)
             best_labels = []
             for idx, external_match in enumerate(recommendations.keys):
                 if recommendations.distances[idx] < threshold:
